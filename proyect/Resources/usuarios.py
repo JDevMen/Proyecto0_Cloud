@@ -5,6 +5,7 @@ from flask_bcrypt import generate_password_hash, check_password_hash
 from marshmallow_sqlalchemy import ModelSchema
 from marshmallow import fields
 from .evento import Evento_Schema
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 
 class Usuario(db.Model):
@@ -52,11 +53,14 @@ class RecursoListarUsuarios(Resource):
 
 
 class RecursoUnUsuario(Resource):
-    def get(self, id_usuario):
+    @jwt_required
+    def get(self):
+        id_usuario = get_jwt_identity()
         user = Usuario.query.get_or_404(id_usuario)
         return user_schema.dump(user)
-
-    def put(self, id_usuario):
+    @jwt_required
+    def put(self):
+        id_usuario = get_jwt_identity()
         user = Usuario.query.get_or_404(id_usuario)
         if 'email' in request.json:
             user.email = request.json['email']
@@ -65,7 +69,9 @@ class RecursoUnUsuario(Resource):
         db.session.commit()
         return user_schema.dump(user)
 
-    def delete(self, id_usuario):
+    @jwt_required
+    def delete(self):
+        id_usuario = get_jwt_identity()
         user = Usuario.query.get_or_404(id_usuario)
         db.session.delete(user)
         db.session.commit()

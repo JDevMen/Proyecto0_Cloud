@@ -1,5 +1,6 @@
 from flask_restful import Resource
 from flask import request
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from Utils.database import db
 from marshmallow_sqlalchemy import ModelSchema
 
@@ -31,13 +32,15 @@ events_schema = Evento_Schema(many=True)
 
 
 class RecursoListarEventos(Resource):
+    @jwt_required
     def get(self):
-        id_usuario = request.json['id_usuario']
-        eventos = Evento.query.all()
+        usuario_id = get_jwt_identity()
+        eventos = Evento.query.filter_by(user_id=usuario_id)
         return events_schema.dump(eventos)
 
+    @jwt_required
     def post(self):
-
+        usuario_id = get_jwt_identity()
         new_event = Evento(
             nombre=request.json['nombre'],
             categoria=request.json['categoria'],
@@ -46,7 +49,7 @@ class RecursoListarEventos(Resource):
             fecha_inicio=request.json['fecha_inicio'],
             fecha_fin=request.json['fecha_fin'],
             virtual=request.json['virtual'],
-            user_id=request.json['user_id']
+            user_id=usuario_id
         )
         db.session.add(new_event)
         db.session.commit()
@@ -54,32 +57,46 @@ class RecursoListarEventos(Resource):
 
 
 class RecursoUnEvento(Resource):
+    @jwt_required
     def get(self, id_evento):
+        usuario_id = get_jwt_identity()
         evento = Evento.query.get_or_404(id_evento)
-        return event_schema.dump(evento)
+        if str(evento.user_id) == str(usuario_id):
+            return event_schema.dump(evento)
+        else:
+            return 'Forbidden', 403
 
-    def put(self,id_evento):
-
+    @jwt_required
+    def put(self, id_evento):
+        usuario_id = get_jwt_identity()
         evento = Evento.query.get_or_404(id_evento)
-        if 'nombre' in request.json:
-            evento.nombre = request.json['nombre']
-        if 'categoria' in request.json:
-            evento.categoria = request.json['categoria']
-        if 'lugar' in request.json:
-            evento.lugar = request.json['lugar']
-        if 'direccion' in request.json:
-            evento.direccion = request.json['direccion']
-        if 'fecha_inicio' in request.json:
-            evento.fecha_inicio = request.json['fecha_inicio']
-        if 'fecha_fin' in request.json:
-            evento.fecha_fin = request.json['fecha_inicio']
-        if 'virtual' in request.json:
-            evento.virtual = request.json['virtual']
-        db.session.commit()
-        return event_schema.dump(evento)
+        if str(usuario_id) == str(evento.user_id):
+            if 'nombre' in request.json:
+                evento.nombre = request.json['nombre']
+            if 'categoria' in request.json:
+                evento.categoria = request.json['categoria']
+            if 'lugar' in request.json:
+                evento.lugar = request.json['lugar']
+            if 'direccion' in request.json:
+                evento.direccion = request.json['direccion']
+            if 'fecha_inicio' in request.json:
+                evento.fecha_inicio = request.json['fecha_inicio']
+            if 'fecha_fin' in request.json:
+                evento.fecha_fin = request.json['fecha_inicio']
+            if 'virtual' in request.json:
+                evento.virtual = request.json['virtual']
+            db.session.commit()
+            return event_schema.dump(evento)
+        else:
+            return 'Forbidden', 403
 
+    @jwt_required
     def delete(self, id_evento):
+        usuario_id = get_jwt_identity()
         evento = Evento.query.get_or_404(id_evento)
-        db.session.delete(evento)
-        db.session.commit()
-        return '', 204
+        if str(usuario_id) == str(evento.user_id):
+            db.session.delete(evento)
+            db.session.commit()
+            return '', 204
+        else:
+            return 'Forbidden', 403
