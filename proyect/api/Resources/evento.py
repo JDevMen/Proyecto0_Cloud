@@ -4,6 +4,9 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from api.Utils.database import db
 from marshmallow_sqlalchemy import ModelSchema
 
+#Recurso para el manejo de los eventos creados por cada usuario.
+#Se maneja la autenticación y la autorización para acceder a
+#los métodos que modifican la base de datos.
 
 class Evento(db.Model):
     __tablename__ = "Event"
@@ -18,19 +21,22 @@ class Evento(db.Model):
     virtual = db.Column(db.Boolean(), default=True)
     user_id = db.Column(db.Integer, db.ForeignKey("User.id"))
 
-
+#Schema que define el model, la sessión de la base de datos y los campos
 class Evento_Schema(ModelSchema):
     class Meta(ModelSchema.Meta):
         model = Evento
         sqla_session = db.session
         fields = ('id', 'nombre', 'categoria', 'lugar', 'direccion', 'fecha_inicio', 'fecha_fin', 'virtual', 'user_id')
 
-
+#Schema para el manejo de request con respuesta de un solo objeto
 event_schema = Evento_Schema()
 
+#Schema para el manejo de request con respuesta de varios objetos (lista).
 events_schema = Evento_Schema(many=True)
 
-
+#Clase del recuso para listar los eventos y crear un evento.
+#Se requiere autenticación para acceder y se hace la asociación de user_id
+#con respecto a el id obtenido de JWT, es decir, del usuario autenticado.
 class RecursoListarEventos(Resource):
     @jwt_required
     def get(self):
@@ -55,7 +61,9 @@ class RecursoListarEventos(Resource):
         db.session.commit()
         return event_schema.dump(new_event)
 
-
+#Clase del recurso para los métodos que modifican solo un evento.
+#Se requiere de autenticación para acceder. Solo se pueden utilizar los métodos
+#en eventos que le pertenezcan al usuario autenticado.
 class RecursoUnEvento(Resource):
     @jwt_required
     def get(self, id_evento):
