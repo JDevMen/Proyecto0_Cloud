@@ -1,6 +1,7 @@
 from Utils.database import db
 from flask import request
 from flask_restful import Resource
+from flask_bcrypt import generate_password_hash, check_password_hash
 from marshmallow_sqlalchemy import ModelSchema
 from marshmallow import fields
 from .evento import Evento_Schema
@@ -14,6 +15,11 @@ class Usuario(db.Model):
     password = db.Column(db.String(100), nullable=False)
     events = db.relationship("Evento", backref="Usuario", cascade="all,delete-orphan")
 
+    def hash_password(self):
+        self.password = generate_password_hash(self.password).decode('utf8')
+
+    def check_password(self, password):
+        return check_password_hash(self.password, password)
 
 class Usuario_Schema(ModelSchema):
     class Meta(ModelSchema.Meta):
