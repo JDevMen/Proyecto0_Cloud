@@ -1,5 +1,5 @@
-from Utils.database import db
-from Resources.usuarios import Usuario
+from api.Utils.database import db
+from api.Resources.usuarios import Usuario
 from flask_restful import Resource
 from flask import request
 from flask_jwt_extended import create_access_token
@@ -27,6 +27,6 @@ class LoginApi(Resource):
         authorized = user.check_password(password)
         if not authorized:
             return {'error': 'Email or password invalid'}, 401
-        expires = datetime.timedelta(days=7)
+        expires = datetime.timedelta(hours=1)
         access_token = create_access_token(identity=str(user.id), expires_delta=expires)
         return {'token': access_token}, 200

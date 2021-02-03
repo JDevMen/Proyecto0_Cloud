@@ -1,4 +1,4 @@
-from Utils.database import db
+from api.Utils.database import db
 from flask import request
 from flask_restful import Resource
 from flask_bcrypt import generate_password_hash, check_password_hash
@@ -21,6 +21,7 @@ class Usuario(db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password, password)
+
 
 class Usuario_Schema(ModelSchema):
     class Meta(ModelSchema.Meta):
@@ -47,6 +48,7 @@ class RecursoListarUsuarios(Resource):
             email=request.json['email'],
             password=request.json['password']
         )
+        new_user.hash_password()
         db.session.add(new_user)
         db.session.commit()
         return user_schema.dump(new_user)
@@ -54,10 +56,14 @@ class RecursoListarUsuarios(Resource):
 
 class RecursoUnUsuario(Resource):
     @jwt_required
-    def get(self):
-        id_usuario = get_jwt_identity()
-        user = Usuario.query.get_or_404(id_usuario)
-        return user_schema.dump(user)
+    def get(self, id_usuario):
+        id_token = get_jwt_identity()
+        if str(id_usuario) == str(id_token):
+            user = Usuario.query.get_or_404(id_usuario)
+            return user_schema.dump(user)
+        else:
+            return 'Forbidden access', 403
+
     @jwt_required
     def put(self):
         id_usuario = get_jwt_identity()
@@ -72,6 +78,7 @@ class RecursoUnUsuario(Resource):
     @jwt_required
     def delete(self):
         id_usuario = get_jwt_identity()
+
         user = Usuario.query.get_or_404(id_usuario)
         db.session.delete(user)
         db.session.commit()

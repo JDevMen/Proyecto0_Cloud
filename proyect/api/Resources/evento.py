@@ -1,7 +1,7 @@
 from flask_restful import Resource
 from flask import request
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from Utils.database import db
+from api.Utils.database import db
 from marshmallow_sqlalchemy import ModelSchema
 
 
