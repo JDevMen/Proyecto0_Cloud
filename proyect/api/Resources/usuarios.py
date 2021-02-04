@@ -83,6 +83,7 @@ class RecursoUnUsuario(Resource):
             user.email = request.json['email']
         if 'password' in request.json:
             user.password = request.json['password']
+        user.hash_password()
         db.session.commit()
         return user_schema.dump(user)
 

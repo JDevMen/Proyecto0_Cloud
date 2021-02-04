@@ -16,7 +16,7 @@ class SignupApi(Resource):
         db.session.add(new_user)
         db.session.commit()
         id = new_user.id
-        return {'id': str(id)}, 200
+        return {'id': str(id)}, 201
 
 
 class LoginApi(Resource):

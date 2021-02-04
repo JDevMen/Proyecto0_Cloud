@@ -42,8 +42,8 @@ with app.app_context():
 #Por convención todas las direcciones empiezan por '/api' para evitar conflictos con las rutas de servicios del front-end
 api.add_resource(evento.RecursoListarEventos, '/api/events')
 api.add_resource(evento.RecursoUnEvento, '/api/events/<int:id_evento>')
-api.add_resource(usuarios.RecursoListarUsuarios, '/api')
-#api.add_resource(usuarios.RecursoUnUsuario, '/api')
+#api.add_resource(usuarios.RecursoListarUsuarios, '/api')
+api.add_resource(usuarios.RecursoUnUsuario, '/api')
 api.add_resource(auth.SignupApi, '/api/auth/signup')
 api.add_resource(auth.LoginApi, '/api/auth/login')
 
